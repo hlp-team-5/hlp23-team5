@@ -358,6 +358,7 @@ let conditions (model: Model) (symbol: Symbol) (wire: Wire) : bool list =
 /// routes wire around symbols from input port to output port
 let routeAroundSymbol (model: Model) (wire: Wire) (symbol: Symbol Option) : SmartAutorouteResult = 
     let selfConnected = isSelfConnected model wire
+
     let routing = 
         match selfConnected with
             | true -> WireT (sameSymbolRouting model wire)
@@ -388,8 +389,11 @@ let routeAroundSymbol (model: Model) (wire: Wire) (symbol: Symbol Option) : Smar
                 // iterate through the list of symbols in the way and adjust the wire segments accordingly and return the wire with the adjusted segments
                 let rec adjustWireSegments wire symbolList =
                     match symbolList with
-                    | [] -> wire
+                    | [] -> 
+                        printfn "i'm here"
+                        wire
                     | symbol::symbols ->
+                        printfn "hie"
                         let symbolBox = symbolBox symbol
                         let symbolTopLeftPos = symbolBox[0]
                         let symbolBottomRightPos = symbolBox[3]
@@ -531,20 +535,35 @@ let routeAroundSymbol (model: Model) (wire: Wire) (symbol: Symbol Option) : Smar
                         let inputPort = string wire.InputPort 
                         let inputSymbol = findSymbol model wire Input |> Option.get
                         let inputPortEdge = inputSymbol.PortMaps.Orientation |> Map.find inputPort
-
+         
                         let wireSegments = 
                             match inputPortEdge with
                                 | Left -> newWireHorizontal
                                 | Right -> newWireHorizontal
                                 | _ -> newWireVertical
 
-                        adjustWireSegments wireSegments symbols
+
+                        let sampleFunc symbol wire =
+                            printfn "Hello" 
+                            let outputPortIndex = getSymbolIndex symbol (string wire.OutputPort)
+                            let segmentLengths = [ wire.Segments[0].Length; wire.Segments[1].Length; 
+                                wire.Segments[2].Length; wire.Segments[4].Length; wire.Segments[6].Length;]
+
+                            updateWire wire segmentLengths
+                        
+                        printfn "F HLP"
+
+                        if (List.length symbolInWay = 0) then  
+                            sampleFunc symbol wire
+                        else 
+                            adjustWireSegments wireSegments symbols
                 
                 if (List.length symbolInWay > 3) && (wire.Segments[4].Length > 300.0) then 
                     // if there are more than 3 symbols in the way of the wire and the wire is long enough - replace wire with wire labels
                     replaceWithWireLabels model wire
 
                 else 
+                    printfn "hlp2"
                     let newWire = adjustWireSegments wire symbolInWay
                     WireT newWire
     
