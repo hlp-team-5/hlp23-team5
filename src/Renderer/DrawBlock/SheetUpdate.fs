@@ -20,7 +20,6 @@ open Fable.Core.JsInterop
 open BuildUartHelpers
 open Node.ChildProcess
 open Node
-open BusWireUpdate
 
 module node = Node.Api
 
@@ -751,7 +750,7 @@ let update (msg : Msg) (model : Model): Model*Cmd<Msg> =
 
     | TestPortReorder ->
         // Test code called from Edit menu item
-        // Validate the list of selected symbols: it must have just 2 for
+        // Validate the lits of selected symbols: it muts have just 2 for
         // the test to work.
          /// HLP23: Indraneel
          let portOrderHelpers: SmartPortOrder.BusWireHelpers = 
@@ -769,61 +768,33 @@ let update (msg : Msg) (model : Model): Model*Cmd<Msg> =
                 model, Cmd.none
     | TestPortPosition ->
         // Test code called from Edit menu item
-
-         /// HLP23: Ifte
-         let symbolSizeHelpers: SmartSizeSymbol.BusWireHelpers = 
-            {
-                updateSymbolWires = BusWireUpdate.updateSymbolWires
-            }
-
-         // Validate the list of selected symbols: it must have just 2 for
-         // the test to work.
+        // Validate the lits of selected symbols: it muts have just 2 for
+        // the test to work.
          validateTwoSelectedSymbols model
          |> function
             | Some (s1,s2) ->
-                {model with Wire = SmartSizeSymbol.reSizeSymbol model.Wire s1 s2 symbolSizeHelpers}, Cmd.none
+                {model with Wire = SmartSizeSymbol.reSizeSymbol model.Wire s1 s2}, Cmd.none
             | None -> 
                 printfn "Error: can't validate the two symbols selected to reorder ports"
                 model, Cmd.none
     | TestSmartChannel ->
         // Test code called from Edit menu item
-        // Validate the list of selected symbols: it must have just two for
+        // Validate the list of selected symbols: it muts have just two for
         // The test to work.
-        let SmartChannelHelpers: SmartChannel.BusUpdateHelpers = 
-            {
-                wireIntersectsBoundingBox = BusWireUpdate.wireIntersectsBoundingBox
-            }
-
-        validateTwoSelectedSymbols model
-        |> function
-        | Some (s1,s2) ->
-            let bBoxes = model.BoundingBoxes
-            getChannel bBoxes[s1.Id] bBoxes[s2.Id]
-            |> function 
-                | None -> 
-                    printfn "Symbols are not oriented for a vertical channel"
-                    model, Cmd.none
-                | Some channel ->
-                    {model with Wire = SmartChannel.smartChannelRoute Vertical channel model.Wire SmartChannelHelpers}, Cmd.none
-        | None -> 
-            printfn "Error: can't validate the two symbols selected to reorder ports"
-            model, Cmd.none  
-
-    | TestPortArrange ->
-        // Test code called from Edit menu item
-
-        /// HLP23: Ifte
-        let portOrderHelpers: SmartPortOrder.BusWireHelpers = 
-            {
-                updateWire = BusWireUpdate.updateWire
-                updateSymbolWires = BusWireUpdate.updateSymbolWires
-            }
-        let symbolSizeHelpers: SmartSizeSymbol.BusWireHelpers = 
-            {
-                updateSymbolWires = BusWireUpdate.updateSymbolWires
-            }
-
-        {model with Wire = SmartPortArrange.reArrangePorts model.Wire symbolSizeHelpers portOrderHelpers}, Cmd.none
+         validateTwoSelectedSymbols model
+         |> function
+            | Some (s1,s2) ->
+                let bBoxes = model.BoundingBoxes
+                getChannel bBoxes[s1.Id] bBoxes[s2.Id]
+                |> function 
+                   | None -> 
+                        printfn "Symbols are not oriented for a vertical channel"
+                        model, Cmd.none
+                   | Some channel ->
+                        {model with Wire = SmartChannel.smartChannelRoute Vertical channel model.Wire}, Cmd.none
+            | None -> 
+                printfn "Error: can't validate the two symbols selected to reorder ports"
+                model, Cmd.none   
     
 
     | ToggleNet _ | DoNothing | _ -> model, Cmd.none
@@ -837,8 +808,6 @@ let init () =
 
     {
         Wire = wireModel
-        PopupViewFunc = None
-        PopupDialogData = {Text=None; Int=None; Int2=None}
         BoundingBoxes = boundingBoxes
         LastValidBoundingBoxes = boundingBoxes
         SelectedComponents = []
